@@ -1,19 +1,18 @@
 import dotenv from 'dotenv';
-import { Pool } from 'pg';
+import { DataSource } from 'typeorm';
+
+import UserModel from '../models/user.model';
 
 
 dotenv.config();
 
-const pool = new Pool({
-  user: process.env.POSTGRES_USER,
+export const AppDataSource = new DataSource({
+  database: process.env.POSTGRES_DB,
+  username: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
-  database: process.env.POSTGRES_DATABASE,
   port: Number(process.env.POSTGRES_PORT),
   host: 'localhost',
+  type: 'postgres',
+  synchronize: true,
+  entities: [UserModel],
 });
-
-pool.on('connect', () => {
-  console.log('Connected to the PostgresSQL database.');
-});
-
-export default pool;

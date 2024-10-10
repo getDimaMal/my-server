@@ -1,36 +1,24 @@
+import 'reflect-metadata';
 import express, { Request, Response } from 'express';
+import router from './router';
 
-import pool from './utils/db';
-import redisClient from './utils/redis';
+import { AppDataSource } from './utils/db';
 
 
 const app = express();
 
+AppDataSource
+  .initialize()
+  .then(() => console.log('Data Source has been initialized!'))
+  .catch((err) => console.error('Error during Data Source initialization', err));
+
 app.use(express.json());
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, World!');
-});
+app.use('/', router);
 
-app.get('/users', async (req: Request, res: Response) => {
-  try {
-    const result = await pool.query('SELECT NOW()');
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error executing query', error);
-    res.status(500).send('Server error');
-  }
-});
-
-app.get('/cache', async (req: Request, res: Response) => {
-  try {
-    await redisClient.set('message', 'Hello from Redis!');
-    const message = await redisClient.get('message');
-    res.send(message);
-  } catch (error) {
-    console.error('Error with Redis', error);
-    res.status(500).send('Server error');
-  }
+app.use((err: any, req: Request, res: Response) => {
+  console.error(err.stack);
+  res.status(500).send({ error: 'Something went wrong!' });
 });
 
 export default app;
